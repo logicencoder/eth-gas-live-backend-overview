@@ -13,7 +13,7 @@ Live production page:
 
 Public backend host:
 
-- `https://eth-gas-app.logicencoder.com`
+- Deployment-specific (configure your own backend host/domain)
 
 ## Architecture
 - Ingestion: Ethereum RPC + mempool/block metrics
