@@ -1,0 +1,231 @@
+<!-- WordPress blog post — paste into the Text/HTML editor. No <h1> tag included. -->
+<!-- Featured image: add via WordPress Featured Image panel, not inline here. -->
+
+<h2>Why Ethereum Gas Fees Still Catch People Off Guard</h2>
+
+<p>If you've ever sent an ETH transfer, swapped tokens on Uniswap, or minted an NFT, you've run into gas fees. They fluctuate constantly — sometimes by 3×–10× within a single hour — and most people have no idea why or when to act. You hit "confirm", the fee looks fine, but by the time the transaction goes through the base fee has spiked and you either overpaid or your transaction sat pending for minutes.</p>
+
+<p>Gas fees are determined by Ethereum's EIP-1559 mechanism: every block has a <strong>base fee</strong> that adjusts up or down depending on how full the previous block was. Add a <strong>priority tip</strong> to get included faster. The base fee can jump from 0.10 GWEI to 0.40 GWEI in under 10 minutes during a busy period. Without a tool that shows you the live state and historical patterns, you're guessing.</p>
+
+<p>That's exactly the problem this tracker was built to solve.</p>
+
+<!-- SCREENSHOT PLACEHOLDER -->
+<figure class="wp-block-image">
+  <img src="PLACEHOLDER_screenshot_dashboard_overview.png" alt="ETH Gas Live Tracker — full dashboard overview" />
+  <figcaption>The ETH Gas Live Tracker dashboard showing realtime gas prices, chart history, and advanced statistics.</figcaption>
+</figure>
+
+<hr />
+
+<h2>What the ETH Gas Live Tracker Does</h2>
+
+<p>The tracker is a self-hosted tool that runs on your own server and connects directly to a local Ethereum (Geth) node. It ingests every new block in real time, computes fee tiers for every use case, stores historical data in a local SQLite database, and streams all of it to the browser via WebSocket — no polling, no API key, no third-party rate limit.</p>
+
+<p>A WordPress plugin version embeds the exact same dashboard natively into any WordPress page using a shortcode.</p>
+
+<hr />
+
+<h2>Realtime Gas Price Panel</h2>
+
+<!-- SCREENSHOT PLACEHOLDER -->
+<figure class="wp-block-image">
+  <img src="PLACEHOLDER_screenshot_gas_price_panel.png" alt="Realtime gas price boxes showing Base Route, Standard Way, Faster Inclusion, and Next Block tiers" />
+  <figcaption>Four gas tiers update live every block — Base Route, Standard Way, Faster Inclusion, and Next Block Guarantee.</figcaption>
+</figure>
+
+<p>The top section shows four live gas tiers updated on every new block (roughly every 12 seconds):</p>
+
+<ul>
+  <li><strong>Base Route</strong> — the minimum spendable fee; suitable for non-urgent transactions where you can wait.</li>
+  <li><strong>Standard Way</strong> — a balanced fee tier that normally confirms within a couple of blocks.</li>
+  <li><strong>Faster Inclusion</strong> — a higher priority tip for when you need the transaction picked up quickly.</li>
+  <li><strong>Next Block Guarantee</strong> — the fee required to be included in the very next block.</li>
+</ul>
+
+<p>Each box shows the current GWEI value, a USD estimate, and a trend arrow compared to the previous reading. A colour coding (green → yellow → red) gives an at-a-glance sense of network pressure without needing to read numbers.</p>
+
+<hr />
+
+<h2>Gas Price History Chart</h2>
+
+<!-- SCREENSHOT PLACEHOLDER -->
+<figure class="wp-block-image">
+  <img src="PLACEHOLDER_screenshot_chart.png" alt="Gas price history chart showing Base Route, Standard, Faster Inclusion, and Avg Utilization over 24 hours" />
+  <figcaption>The chart plots all four data series over your selected time range. Click any legend item to toggle that dataset on or off.</figcaption>
+</figure>
+
+<p>The history chart plots all four gas tiers over time alongside <strong>average block utilization</strong> (the yellow line, right axis). Seeing utilization together with gas price is important — a high utilization spike is the early warning that fees are about to climb.</p>
+
+<p>Key chart features:</p>
+
+<ul>
+  <li><strong>Time range selector</strong> — switch between 1 hour, 6 hours, 24 hours, 72 hours, and 7 days without reloading the page.</li>
+  <li><strong>Click-to-toggle legend</strong> — click any of the four coloured legend labels above the chart to hide or show that dataset, making it easy to focus on just the series you care about.</li>
+  <li><strong>Timestamps stay inside chart borders</strong> — the timeline ticks are dynamically padded to align exactly with the chart plot area at every screen size.</li>
+  <li><strong>Smoothing options</strong> — raw, simple moving average (SMA 3/5/10), exponential moving average, median, or clamp 99% outliers.</li>
+  <li><strong>Faster Inclusion Percentiles (FIP)</strong> — shows P50, P70, P75, P80, P85 tip percentiles below the chart so you can pick exactly how competitive you want to be.</li>
+</ul>
+
+<hr />
+
+<h2>Gas Heatmap</h2>
+
+<!-- SCREENSHOT PLACEHOLDER -->
+<figure class="wp-block-image">
+  <img src="PLACEHOLDER_screenshot_heatmap.png" alt="Weekly gas heatmap showing hourly averages per day, colour-coded from low to high" />
+  <figcaption>The heatmap shows average gas prices per hour per day over the past 7 days. Blue = cheap, orange/red = expensive. All times are in your local timezone.</figcaption>
+</figure>
+
+<p>The heatmap is one of the most practical sections of the tracker. It answers the question: <em>what time of day is gas consistently cheapest?</em></p>
+
+<p>Each cell is one hour of one day. The colour scale goes from cool blue (low fees) to orange/red (high fees). Hover any filled cell to see the exact average in GWEI.</p>
+
+<p>Everything is shown in <strong>your browser's local timezone</strong>. The backend stores data in UTC, but the frontend performs a full day-boundary transform so midnight on the heatmap really is your local midnight — not UTC midnight. This matters especially for users in UTC+5 or higher, where a naive UTC display would show data from the "wrong" day.</p>
+
+<p>The heatmap updates automatically when the hour rolls over, so you don't need to refresh the page to see new data appear.</p>
+
+<hr />
+
+<h2>Advanced Statistics Panel</h2>
+
+<!-- SCREENSHOT PLACEHOLDER -->
+<figure class="wp-block-image">
+  <img src="PLACEHOLDER_screenshot_stats_panel.png" alt="Advanced statistics showing best/worst hours to send, volatility, and hourly averages" />
+  <figcaption>Advanced statistics over the last 25 hours, including best and worst local hours to transact.</figcaption>
+</figure>
+
+<p>The statistics panel gives you analytical depth beyond the current moment:</p>
+
+<ul>
+  <li><strong>Best and worst hour to send</strong> — which hour of the day historically has the lowest (and highest) average gas, based on the last 25 hours of data. Displayed in your local time.</li>
+  <li><strong>Hourly averages timeline</strong> — all 24 hours listed in chronological order from 25 hours ago to now, so you can scroll through a rolling window and spot patterns. Not a fixed UTC-midnight-to-now slice — this is always a true rolling 25-hour window regardless of what time you load the page.</li>
+  <li><strong>Volatility breakdown</strong> — standard deviation for the Safe, Standard, and Fast tiers, giving a sense of how much fees are swinging at any given moment.</li>
+  <li><strong>Price ranges</strong> — min/max/average for the base fee over the selected period.</li>
+  <li><strong>Mempool snapshot</strong> — current, min, max, and average pending transaction count.</li>
+</ul>
+
+<p>Why the rolling window matters: if you open the tracker at 2 AM, a midnight-to-now window would only show 2 hours of data, making best/worst hour calculations almost meaningless. The 25-hour rolling approach ensures you always have a full day's worth of patterns to compare against.</p>
+
+<hr />
+
+<h2>Gas Intelligence Hub</h2>
+
+<!-- SCREENSHOT PLACEHOLDER -->
+<figure class="wp-block-image">
+  <img src="PLACEHOLDER_screenshot_intelligence_hub.png" alt="Gas Intelligence Hub showing best time to send, network stress score, and ETH price" />
+  <figcaption>The Intelligence Hub gives a quick summary of timing recommendations and live network health.</figcaption>
+</figure>
+
+<p>The Intelligence Hub is a compact summary panel designed for quick decisions:</p>
+
+<ul>
+  <li><strong>Best time to send</strong> — derived from historical patterns, shown in your local time.</li>
+  <li><strong>Worst time to send</strong> — the hour you want to avoid.</li>
+  <li><strong>Network stress score</strong> — a composite indicator of current block utilization and fee pressure.</li>
+  <li><strong>Live ETH price</strong> — sourced from MEXC WebSocket or Binance REST fallback, updated continuously.</li>
+</ul>
+
+<hr />
+
+<h2>Gas Fee Calculator</h2>
+
+<!-- SCREENSHOT PLACEHOLDER -->
+<figure class="wp-block-image">
+  <img src="PLACEHOLDER_screenshot_calculator.png" alt="Gas fee calculator with preset transaction types and custom gas limit input" />
+  <figcaption>The calculator instantly converts gas prices to USD for any transaction type using live rates.</figcaption>
+</figure>
+
+<p>The built-in calculator answers the most practical question: <em>how much will this actually cost in dollars?</em></p>
+
+<p>Pick a preset transaction type — ETH Transfer, Token Transfer, DEX Swap, NFT Mint, Smart Contract Deploy, and more — or enter a custom gas limit. The calculator immediately shows the cost in USD for each of the four fee tiers using the live ETH price. Switch between Standard Way and other modes to compare.</p>
+
+<hr />
+
+<h2>Price Alerts</h2>
+
+<!-- SCREENSHOT PLACEHOLDER -->
+<figure class="wp-block-image">
+  <img src="PLACEHOLDER_screenshot_alerts.png" alt="Price alert configuration panel with threshold and condition settings" />
+  <figcaption>Set a gas price threshold and the tracker will trigger a browser notification when conditions are met.</figcaption>
+</figure>
+
+<p>Alerts let you walk away from the screen and come back when conditions are right. Set a threshold (e.g., "notify me when Standard Way drops below 0.15 GWEI") and the tracker fires a browser notification when the condition is met.</p>
+
+<p>Alert conditions include above/below thresholds on any gas tier, and notifications are delivered in-browser without any server-side email or messaging dependency.</p>
+
+<hr />
+
+<h2>Fully Mobile Responsive</h2>
+
+<!-- SCREENSHOT PLACEHOLDER -->
+<figure class="wp-block-image">
+  <img src="PLACEHOLDER_screenshot_mobile.png" alt="ETH Gas Tracker on a mobile phone screen" />
+  <figcaption>The full dashboard works on mobile — chart, heatmap, stats, and calculator all reflow cleanly at any screen width.</figcaption>
+</figure>
+
+<p>Every section of the dashboard reflows cleanly from desktop down to a 320px phone screen:</p>
+
+<ul>
+  <li>Chart height adjusts (340px desktop → 210px tablet → 180px phone)</li>
+  <li>Heatmap cells shrink to maintain the full 7-day grid</li>
+  <li>Stats and calculator stack vertically</li>
+  <li>The Avg Utilization legend item and right-axis are hidden on mobile to reduce clutter</li>
+  <li>Resize from desktop to mobile and back — no hard refresh needed</li>
+</ul>
+
+<hr />
+
+<h2>WordPress Plugin Integration</h2>
+
+<!-- SCREENSHOT PLACEHOLDER -->
+<figure class="wp-block-image">
+  <img src="PLACEHOLDER_screenshot_wp_plugin.png" alt="ETH Gas Tracker embedded in a WordPress page via shortcode" />
+  <figcaption>The WordPress plugin embeds the full dashboard as a native page element using a single shortcode.</figcaption>
+</figure>
+
+<p>The WordPress plugin version delivers the identical dashboard experience inside any WordPress page or post using the <code>[eth_gas_live]</code> shortcode. It connects to your own self-hosted backend via configurable API and WebSocket URLs set from the plugin admin panel.</p>
+
+<p>The admin panel includes a Mission Control section with live backend health cards, WebSocket throughput graphs, database statistics, and a raw JSON monitoring inspector — all without touching the backend server directly.</p>
+
+<hr />
+
+<h2>Backend Architecture (Technical Summary)</h2>
+
+<p>For those who want to self-host or understand the internals:</p>
+
+<ul>
+  <li><strong>FastAPI + AsyncIO</strong> — the backend is a single Python process handling RPC polling, WebSocket broadcasting, and REST API serving concurrently.</li>
+  <li><strong>Direct Geth RPC</strong> — connects to a local <code>go-ethereum</code> node over HTTP/WebSocket. No Infura, no API key required.</li>
+  <li><strong>Backup node support</strong> — if the local node is not reachable, the backend automatically falls back to a configurable remote node IP (<code>GETH_FALLBACK_HOST</code> in <code>.env</code>). This makes it portable across machines.</li>
+  <li><strong>SQLite persistence</strong> — historical gas data is written to a local database and queried for analytics, heatmap, and statistics endpoints.</li>
+  <li><strong>Cloudflare Tunnel</strong> — the recommended public routing layer, providing stable HTTPS/WSS without opening inbound firewall ports.</li>
+  <li><strong>WordPress push bridge</strong> — the backend can optionally push signed realtime snapshots to the WordPress plugin's REST cache endpoint so the plugin always has current data even if its WebSocket disconnects briefly.</li>
+</ul>
+
+<hr />
+
+<h2>Why Self-Host Instead of Using a Public API?</h2>
+
+<p>Most gas trackers rely on third-party APIs (Etherscan, Infura, Alchemy). That's fine for casual use, but there are real trade-offs:</p>
+
+<ul>
+  <li><strong>Rate limits</strong> — free tiers throttle requests, which matters when you want block-by-block updates.</li>
+  <li><strong>Latency</strong> — a remote API adds round-trip time; your own node sees a new block the moment it arrives.</li>
+  <li><strong>Data control</strong> — you own the database, the history, and the query logic. No third party decides what data you get or how long it's retained.</li>
+  <li><strong>No single point of failure</strong> — if Etherscan has an outage, your tracker still works.</li>
+</ul>
+
+<p>If you already run an Ethereum node (or know someone who does), adding this tracker on top costs almost nothing in additional resources.</p>
+
+<hr />
+
+<h2>Get Started</h2>
+
+<p>The tracker is available in two forms:</p>
+
+<ul>
+  <li><strong>Standalone backend</strong> — Python / FastAPI, runs on any Linux machine with a local or remote Geth node. Configure via <code>.env</code>, run with <code>uvicorn</code>.</li>
+  <li><strong>WordPress plugin</strong> — PHP plugin, install from the admin panel, configure backend URL in settings, embed with shortcode.</li>
+</ul>
+
+<p>Live demo: <a href="https://logicencoder.com/ethereum-gas-tracker/">logicencoder.com/ethereum-gas-tracker/</a></p>
