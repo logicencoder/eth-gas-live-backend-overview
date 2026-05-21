@@ -1,111 +1,105 @@
-# ETH Gas Live Backend — Overview (Public)
+# ETH Gas Live — Backend Overview (Public)
 
-This repository is a public overview only and excludes private implementation details.
+Public-facing summary of the **Ethereum Gas Live** backend.  
+No private source code, credentials, or deployment secrets are published here.
 
-![ETH Gas Live Backend UI](screenshot.png)
+![ETH Gas Live — dashboard](screenshot.png)
 
-## Purpose
-Provide realtime Ethereum gas intelligence through a FastAPI backend used by local UI and WordPress plugin clients.
+**Live page:** https://logicencoder.com/ethereum-gas-tracker/
 
-Live production page:
+---
 
-- `https://logicencoder.com/ethereum-gas-tracker/`
+## What problem does this solve?
 
-Public backend host:
+Sending an Ethereum transaction at the wrong moment can cost far more than necessary. Fees move block by block, mempools fill up, and “recommended gas” from a single number is often misleading.
 
-- Deployment-specific (configure your own backend host/domain)
+This backend powers a **real-time gas intelligence dashboard** that helps you:
 
-## Recent UI Improvements
+- See **current fee tiers** in plain language (economical, standard, faster)  
+- Understand **network stress** before you send  
+- Use **charts, heatmaps, and rolling statistics** to pick a better time window  
+- Estimate costs for **common actions** (transfer, swap, approve, bridge, NFT, etc.)  
+- Set **alerts** when fees cross your threshold  
+- Operate a **live public site** with fast updates over WebSocket  
 
-- **Fully responsive mobile layout** — adapts seamlessly from desktop to phone without requiring a hard refresh
-- **Custom chart legend with click-to-toggle** — click any legend item (Base Route / Standard / Faster Inclusion / Avg Utilization) to show or hide that dataset on the chart
-- **Chart timestamps aligned to plot area** — timeline ticks and legend are dynamically padded to stay inside the chart borders at all screen sizes (via Chart.js `afterRender` plugin)
-- **Local timezone everywhere** — all hourly statistics, heatmap day/hour grid, and Best/Worst time to send are converted to the visitor's local timezone (no hardcoded UTC labels)
-- **Heatmap midnight crossover fix** — `transformHeatmapToLocal()` correctly shifts UTC data across day boundaries so each local calendar day shows its correct 24 hours
-- **Rolling 25-hour statistics window** — statistics always cover the last 25 hours from now regardless of time of day (not just since UTC midnight)
-- **Hourly averages chronological order** — the hourly averages panel lists hours starting from 25 hours ago through the current hour, giving a true rolling timeline view
-- **Heatmap auto-refresh on hour boundary** — detected via incoming WebSocket timestamps with `Date.now()` fallback
-- **Unified dropdown styling** — all select menus share consistent dark theme with no double-border artefacts
+---
 
-## Architecture
-- Ingestion: Ethereum RPC + mempool/block metrics
-- Processing: fee tiers, percentile/volatility/time analysis
-- Storage: SQLite historical persistence
-- Delivery:
-  - WebSocket (`/ws/gas`) for realtime updates
-  - REST (`/api/gas/*`) for analytics/history
-  - Monitoring (`/api/monitoring/overview`) for operations visibility
-- WordPress bridge: optional push mirror to plugin realtime cache endpoint
+## Who is it for?
 
-## Backup Node Support
+- Traders and operators who send transactions often  
+- Developers evaluating realtime dashboard + blockchain data products  
+- Teams who want a **self-hosted** gas monitor tied to their own node or RPC  
+- Visitors to LogicEncoder’s live gas tracker page  
 
-The backend auto-detects the Ethereum node host at startup:
+---
 
-1. Attempts to connect to `127.0.0.1:8545` (local Geth)
-2. If unreachable, falls back to `GETH_FALLBACK_HOST` from `.env`
-3. `GETH_HOST` in `.env` overrides both auto-detection steps
+## What you get (capabilities)
 
-This makes the same codebase portable across machines — set `GETH_FALLBACK_HOST` on any machine that doesn't run a local node.
+### Real-time monitoring
 
-## Runtime Domains
+- Live connection and network status  
+- Current block and mempool visibility  
+- Safe / standard / fast style tiers with GWEI, ETH, and USD estimates  
+- Short **guidance text** (pressure + spike awareness) so you know if waiting is reasonable  
 
-### 1) Realtime domain
+### Analytics & decisions
 
-- websocket snapshots (`WS /ws/gas`)
-- alert events in same stream channel
-- block-by-block updates
+- Historical charts with selectable time ranges  
+- **Heatmap** by day and hour (shown in the visitor’s local timezone on the live UI)  
+- Rolling **~25 hour** statistics window  
+- **Fee calculator** with presets for typical transaction types  
+- **Featured actions** — ballpark costs for swaps, transfers, bridges, and more  
 
-### 2) Analytics domain
+### Reliability & operations (conceptual)
 
-- historical series APIs
-- statistics and prediction APIs
-- heatmap and featured-action APIs
+- WebSocket stream for low-latency updates  
+- REST endpoints for history and statistics when a snapshot is enough  
+- Health and **mission-style monitoring** surface for uptime and pipeline visibility  
+- Historical storage so charts stay useful after restarts  
 
-### 3) Operations domain
+### Discoverability (live product)
 
-- health endpoint
-- runtime observability endpoint (`/api/monitoring/overview`)
-- cache/db telemetry and loop timing signals
+- Indexable **SEO pages** (fees today, calculator, network status, mempool, etc.) backed by the same live data  
 
-## Monitoring Payload Surface
+---
 
-Mission Control consumes these payload sections:
+## How it fits the live product
 
-- `runtime`
-- `current_state`
-- `fetch_pipeline`
-- `websocket`
-- `alerts`
-- `wordpress_push`
-- `api_cache`
-- `database`
-- `timeseries`
+```
+Visitor browser
+    → WordPress page (native dashboard UI)
+    → Backend over WebSocket + REST (realtime gas data)
+    → Optional SEO pages (server-rendered summaries for search)
+```
 
-This enables operational visibility without exposing private code internals.
+The WordPress plugin is documented separately:  
+[eth-gas-live-plugin-overview-public](https://github.com/logicencoder/eth-gas-live-plugin-overview-public)
 
-## End-to-End Data Flow
+---
 
-1. Node data is fetched and normalized into gas snapshot payloads.
-2. Snapshots are persisted to SQLite.
-3. Snapshots are broadcast to websocket clients.
-4. Analytics endpoints read from cached + persisted datasets.
-5. Optional signed mirror payloads are pushed to WordPress cache bridge.
-6. Mission Control polls monitoring endpoint for runtime diagnostics.
+## Technology (high level only)
 
-## Operational model
-- Backend runs independently
-- Cloudflare Tunnel provides stable public routing
-- Plugin consumes backend with websocket-only realtime mode
+- Python, FastAPI, async I/O  
+- Ethereum RPC / node integration  
+- SQLite for history  
+- WebSocket + REST  
+- Companion SSR layer for SEO HTML  
+- Cloudflare Tunnel (or equivalent) for stable public access in production  
 
-## Stack
+---
 
-- Python
-- FastAPI
-- AsyncIO
-- Web3 RPC integration
-- SQLite
-- WebSocket + REST
-- Cloudflare Tunnel
+## Related public repos
 
-## Security note
-No secrets, private source internals, or credentials are published here.
+| Repository | Contents |
+|------------|----------|
+| [eth-gas-tracker-overview](https://github.com/logicencoder/eth-gas-tracker-overview) | Whole-product story (standalone + live) |
+| [eth-gas-live-plugin-overview-public](https://github.com/logicencoder/eth-gas-live-plugin-overview-public) | WordPress-facing overview |
+
+Private implementation: `logicencoder/eth-gas-live-backend-private` (not public).
+
+---
+
+## Disclosure
+
+This repository is intentionally **documentation and screenshots only**.  
+It exists so recruiters, collaborators, and users can understand **what the system does** without exposing how every line is implemented.
