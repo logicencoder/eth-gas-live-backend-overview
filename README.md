@@ -1,6 +1,6 @@
 # ETH Gas Live — Backend Capabilities (Public Overview)
 
-This document describes **what the live Ethereum Gas backend does** and **who it helps**. It matches the production system behind [logicencoder.com/ethereum-gas-tracker/](https://logicencoder.com/ethereum-gas-tracker/). No source code or credentials are published in this repository.
+Backend capabilities for the live system at [logicencoder.com/ethereum-gas-tracker/](https://logicencoder.com/ethereum-gas-tracker/).
 
 ---
 
@@ -31,9 +31,7 @@ Three named paths updated continuously:
 
 Each tier is shown in **GWEI**, estimated **ETH**, and **USD** (live ETH price feed).
 
-### Network stress signals (not a mempool counter)
-
-Public RPC endpoints rarely expose trustworthy global mempool depth. The product therefore focuses on metrics that **are** observable from recent blocks:
+### Network stress signals
 
 - **Transactions per minute** (estimated throughput)  
 - **Block utilization** (how full recent blocks are)  
@@ -41,8 +39,6 @@ Public RPC endpoints rarely expose trustworthy global mempool depth. The product
 - **Spike score** — 0–100 short-term regime vs recent hours  
 - **Fee competition** — how wide priority-fee spreads are  
 - **Block speed pressure** — share of blocks near capacity  
-
-Together these answer: *“Is now a bad time to send?”* without pretending to know an exact pending-tx count.
 
 ### Historical and analytical views
 
@@ -75,12 +71,10 @@ Separate URLs (served for search engines and deep links) explain focused topics.
 | Gas calculator | `/ethereum-gas-calculator/` |
 | Transaction costs | `/ethereum-transaction-costs/` |
 | Swap gas costs | `/ethereum-swap-gas-fees/` |
-| Network load & throughput | `/ethereum-mempool-tracker/` *(educational “network load” page — not a live mempool depth widget)* |
+| Network load | `/ethereum-mempool-tracker/` |
 | Network status | `/ethereum-network-status/` |
 | Price history | `/ethereum-gas-price-history/` |
 | Fee percentiles | `/ethereum-gas-percentiles/` |
-
-The live app’s in-page hub links to these topics; the hub strip intentionally omits a separate “mempool” tab because the live dashboard does not show mempool size.
 
 ---
 
@@ -100,12 +94,6 @@ The live app’s in-page hub links to these topics; the hub strip intentionally 
 The public WordPress site embeds the **same dashboard experience** and loads topic pages from the shared backend. WordPress overview: [eth-gas-live-plugin-overview-public](https://github.com/logicencoder/eth-gas-live-plugin-overview-public).
 
 Full product narrative: [eth-gas-tracker-overview](https://github.com/logicencoder/eth-gas-tracker-overview).
-
----
-
-## What this repository is
-
-Documentation and high-level capability description for portfolios and evaluation. Implementation lives in private repositories (by invitation).
 
 ---
 
