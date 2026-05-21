@@ -1,105 +1,114 @@
-# ETH Gas Live — Backend Overview (Public)
+# ETH Gas Live — Backend Capabilities (Public Overview)
 
-Public-facing summary of the **Ethereum Gas Live** backend.  
-No private source code, credentials, or deployment secrets are published here.
-
-![ETH Gas Live — dashboard](screenshot.png)
-
-**Live page:** https://logicencoder.com/ethereum-gas-tracker/
+This document describes **what the live Ethereum Gas backend does** and **who it helps**. It matches the production system behind [logicencoder.com/ethereum-gas-tracker/](https://logicencoder.com/ethereum-gas-tracker/). No source code or credentials are published in this repository.
 
 ---
 
-## What problem does this solve?
+## Problem
 
-Sending an Ethereum transaction at the wrong moment can cost far more than necessary. Fees move block by block, mempools fill up, and “recommended gas” from a single number is often misleading.
+Sending on Ethereum without context leads to:
 
-This backend powers a **real-time gas intelligence dashboard** that helps you:
+- Paying **too much** because “fast” was selected blindly  
+- Paying **too little** and waiting hours during congestion  
+- Missing **quieter windows** when fees dip  
+- Misreading a single GWEI number without tier breakdown or USD cost  
 
-- See **current fee tiers** in plain language (economical, standard, faster)  
-- Understand **network stress** before you send  
-- Use **charts, heatmaps, and rolling statistics** to pick a better time window  
-- Estimate costs for **common actions** (transfer, swap, approve, bridge, NFT, etc.)  
-- Set **alerts** when fees cross your threshold  
-- Operate a **live public site** with fast updates over WebSocket  
+The backend exists to turn raw chain data into **tiered, explained, historical, and time-aware** guidance updated every block (or near it on local Geth).
 
 ---
 
-## Who is it for?
+## What the system delivers
 
-- Traders and operators who send transactions often  
-- Developers evaluating realtime dashboard + blockchain data products  
-- Teams who want a **self-hosted** gas monitor tied to their own node or RPC  
-- Visitors to LogicEncoder’s live gas tracker page  
+### Realtime fee tiers
 
----
+Three named paths updated continuously:
 
-## What you get (capabilities)
+| Tier | Typical use |
+|------|-------------|
+| **Base Route** | Minimum viable inclusion (base fee only) |
+| **Standard Way** | Balanced cost for most transfers and interactions |
+| **Faster Inclusion** | Higher tip profile when blocks are competitive |
 
-### Real-time monitoring
+Each tier is shown in **GWEI**, estimated **ETH**, and **USD** (live ETH price feed).
 
-- Live connection and network status  
-- Current block and mempool visibility  
-- Safe / standard / fast style tiers with GWEI, ETH, and USD estimates  
-- Short **guidance text** (pressure + spike awareness) so you know if waiting is reasonable  
+### Network stress signals (not a mempool counter)
 
-### Analytics & decisions
+Public RPC endpoints rarely expose trustworthy global mempool depth. The product therefore focuses on metrics that **are** observable from recent blocks:
 
-- Historical charts with selectable time ranges  
-- **Heatmap** by day and hour (shown in the visitor’s local timezone on the live UI)  
-- Rolling **~25 hour** statistics window  
-- **Fee calculator** with presets for typical transaction types  
-- **Featured actions** — ballpark costs for swaps, transfers, bridges, and more  
+- **Transactions per minute** (estimated throughput)  
+- **Block utilization** (how full recent blocks are)  
+- **Inclusion Pressure Index (IPI)** — 0–100 score combining throughput, fullness, and tip spread  
+- **Spike score** — 0–100 short-term regime vs recent hours  
+- **Fee competition** — how wide priority-fee spreads are  
+- **Block speed pressure** — share of blocks near capacity  
 
-### Reliability & operations (conceptual)
+Together these answer: *“Is now a bad time to send?”* without pretending to know an exact pending-tx count.
 
-- WebSocket stream for low-latency updates  
-- REST endpoints for history and statistics when a snapshot is enough  
-- Health and **mission-style monitoring** surface for uptime and pipeline visibility  
-- Historical storage so charts stay useful after restarts  
+### Historical and analytical views
 
-### Discoverability (live product)
+- **Price charts** — 1 hour through 30 days for all three tiers  
+- **Heatmap** — hour-of-day patterns (browser uses local timezone on the public site)  
+- **Rolling averages** — 1h, 3h, 6h, 12h, 24h, 3d, 7d, 30d  
+- **Percentiles** on the faster tier (P50–P85)  
+- **Advanced statistics** — min/max/avg/median, volatility, best/worst hours in a selected window  
 
-- Indexable **SEO pages** (fees today, calculator, network status, mempool, etc.) backed by the same live data  
+### Planning tools
 
----
+- **Gas Intelligence Hub** — narrative insight, best/worst send windows (24h context), **send now vs wait** recommendation  
+- **Fee calculator** — gas limit presets + custom limit; price tied to Base / Standard / Faster / custom GWEI  
+- **Featured transaction costs** — estimates for 18 common actions (transfer, swap, NFT, bridge, DeFi ops, contract deploy, etc.) at each tier  
 
-## How it fits the live product
+### Alerts
 
-```
-Visitor browser
-    → WordPress page (native dashboard UI)
-    → Backend over WebSocket + REST (realtime gas data)
-    → Optional SEO pages (server-rendered summaries for search)
-```
+Browser-session alerts when Standard (or configured) GWEI crosses **above** or **below** a threshold, with optional desktop notifications.
 
-The WordPress plugin is documented separately:  
-[eth-gas-live-plugin-overview-public](https://github.com/logicencoder/eth-gas-live-plugin-overview-public)
+### Indexable educational pages
 
----
+Separate URLs (served for search engines and deep links) explain focused topics. Content is filled with **live numbers** (fees, IPI, utilization, tx/min) so pages stay relevant as the market moves.
 
-## Technology (high level only)
+| Page topic | URL path (on LogicEncoder) |
+|------------|----------------------------|
+| Live tracker hub | `/ethereum-gas-tracker/` |
+| Fees today | `/ethereum-gas-fees-today/` |
+| Why fees are high | `/why-are-ethereum-gas-fees-high/` |
+| Best time to send | `/best-time-to-send-ethereum/` |
+| Gas calculator | `/ethereum-gas-calculator/` |
+| Transaction costs | `/ethereum-transaction-costs/` |
+| Swap gas costs | `/ethereum-swap-gas-fees/` |
+| Network load & throughput | `/ethereum-mempool-tracker/` *(educational “network load” page — not a live mempool depth widget)* |
+| Network status | `/ethereum-network-status/` |
+| Price history | `/ethereum-gas-price-history/` |
+| Fee percentiles | `/ethereum-gas-percentiles/` |
 
-- Python, FastAPI, async I/O  
-- Ethereum RPC / node integration  
-- SQLite for history  
-- WebSocket + REST  
-- Companion SSR layer for SEO HTML  
-- Cloudflare Tunnel (or equivalent) for stable public access in production  
-
----
-
-## Related public repos
-
-| Repository | Contents |
-|------------|----------|
-| [eth-gas-tracker-overview](https://github.com/logicencoder/eth-gas-tracker-overview) | Whole-product story (standalone + live) |
-| [eth-gas-live-plugin-overview-public](https://github.com/logicencoder/eth-gas-live-plugin-overview-public) | WordPress-facing overview |
-
-Private implementation: `logicencoder/eth-gas-live-backend-private` (not public).
+The live app’s in-page hub links to these topics; the hub strip intentionally omits a separate “mempool” tab because the live dashboard does not show mempool size.
 
 ---
 
-## Disclosure
+## Who benefits
 
-This repository is intentionally **documentation and screenshots only**.  
-It exists so recruiters, collaborators, and users can understand **what the system does** without exposing how every line is implemented.
+| Audience | Value |
+|----------|--------|
+| **Retail senders** | See cost before confirming a wallet transaction |
+| **Active traders / DeFi users** | Compare tier costs for swaps, approvals, bridges |
+| **Content / SEO visitors** | Land on specific questions (“fees today”, “best time”) with current data |
+| **Operators** | Health telemetry (uptime, fetch success, WS clients) without reading logs |
+
+---
+
+## How it connects to the website
+
+The public WordPress site embeds the **same dashboard experience** and loads topic pages from the shared backend. WordPress overview: [eth-gas-live-plugin-overview-public](https://github.com/logicencoder/eth-gas-live-plugin-overview-public).
+
+Full product narrative: [eth-gas-tracker-overview](https://github.com/logicencoder/eth-gas-tracker-overview).
+
+---
+
+## What this repository is
+
+Documentation and high-level capability description for portfolios and evaluation. Implementation lives in private repositories (by invitation).
+
+---
+
+## Live link
+
+**https://logicencoder.com/ethereum-gas-tracker/**
