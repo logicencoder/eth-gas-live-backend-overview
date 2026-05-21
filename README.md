@@ -91,9 +91,9 @@ Separate URLs (served for search engines and deep links) explain focused topics.
 
 ## How it connects to the website
 
-The public WordPress site embeds the **same dashboard experience** and loads topic pages from the shared backend. WordPress overview: [eth-gas-live-plugin-overview-public](https://github.com/logicencoder/eth-gas-live-plugin-overview-public).
+The public WordPress site embeds the **same dashboard experience** and loads topic pages from the shared backend. WordPress overview: [eth-gas-live-plugin-overview](https://github.com/logicencoder/eth-gas-live-plugin-overview).
 
-Full product narrative: [eth-gas-tracker-overview](https://github.com/logicencoder/eth-gas-tracker-overview).
+Full product narrative: [eth-gas-live-backend-overview](https://github.com/logicencoder/eth-gas-live-backend-overview).
 
 ---
 
