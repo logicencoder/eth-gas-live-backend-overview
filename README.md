@@ -96,11 +96,11 @@ When configured, an async task POSTs the enriched JSON to the plugin **`ethgas/v
 
 **`/api/monitoring/overview`** aggregates uptime, ingest loop ms (last/avg/max), RPC fetch success rate, WebSocket client counts, SQLite row counts, history/heatmap/statistics cache hit ratios, WordPress push stats, and recent error strings. Sparkline arrays back wp-admin Mission Control charts.
 
-**Example:** loop **avg ms** climbing while **fetch_hard_timeouts** increment → RPC or Geth stress; **broadcast_failures** climbing with high client count → payload or network issue, not SQLite.
+**Example:** loop **avg ms** climbing while **fetch_hard_timeouts** increment → RPC or Geth stress; **broadcast_failures** climbing with high client count → payload or network issue — check SQLite/cache next.
 
 ## Shared hosting headroom
 
-The public gas product is published on **WordPress shared hosting** — appropriate for the SPA shell, SEO templates, cache bypass, and REST mirror, but not for block-by-block RPC ingest, SQLite growth, WebSocket fan-out, or tier math. This backend keeps **PHP thin**: compute runs on **self-hosted Linux** with async workers and optional Geth, then pushes compact JSON to WordPress. Visitors still get per-block updates over WebSocket; REST and the WP transient cover strict networks. Shared-hosting CPU and memory stay well below plan limits while the live tracker runs — same split pattern as other Logic Encoder realtime products on the same host.
+The public gas product is published on **WordPress shared hosting** for the SPA shell, SEO templates, cache bypass, and REST mirror. Block-by-block RPC ingest, SQLite growth, WebSocket fan-out, and tier math run on **self-hosted Linux** with async workers and optional Geth; compact JSON pushes to WordPress. Visitors still get per-block updates over WebSocket; REST and the WP transient cover strict networks. Shared-hosting CPU and memory stay well below plan limits while the live tracker runs — same split pattern as other Logic Encoder realtime products on the same host.
 
 Private code: [eth-gas-live-backend](https://github.com/logicencoder/eth-gas-live-backend)
 
