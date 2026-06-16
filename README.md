@@ -110,4 +110,57 @@ See [REPOS.md](REPOS.md).
 
 ---
 
+## Feature examples (two per capability)
+
+#### Block ingest and fee tiers
+1. You start the gas service on your execution client and confirm each new head triggers a fresh Base Route, Standard Way, and Faster Inclusion tier on the public dashboard.
+2. You compare wallet “medium” to Standard Way on the live API and explain to a user why EIP-1559 base and priority components differ from a single collapsed number.
+
+#### ETH/USD price feed
+1. You watch the header ETH price update from the exchange WebSocket feed while tiers recalculate in USD on the same block.
+2. MEXC feed stalls and you confirm Binance REST fallback keeps USD estimates on the page until the primary feed recovers.
+
+#### Rolling history and charts
+1. You select seven days in the SPA and load history charts with utilization overlay for Standard gwei across the week.
+2. You enable clamp smoothing on the client and reprocess cached series without another server round-trip during a demo.
+
+#### Network stress and Intelligence Hub
+1. Spike score crosses your mental threshold and the status label flips to SPIKE with a congestion reason you can quote in chat support.
+2. You open the Intelligence Hub and read the one-line insight plus send-now/wait hint after comparing current Standard gwei to the 24h average.
+
+#### WebSocket live updates
+1. You connect to the gas WebSocket and receive the full enriched object on connect, then on every subsequent block without refreshing the page.
+2. Corporate Wi-Fi blocks WS briefly and you fall back to polling `/api/gas/current` until the socket reconnects.
+
+#### Featured transaction costs
+1. You open featured actions and read Base/Standard/Faster USD for Swap (DEX) using the preset gas limits baked into the product.
+2. You click a featured row in the SPA and the fee calculator preset jumps to that action’s standard gas limit automatically.
+
+#### In-app fee calculator
+1. You choose the Swap (DEX) preset, switch price mode to Faster Inclusion, and watch ETH and USD totals update from live tier prices.
+2. You type a custom gas limit and gwei for a niche contract call and compare sidebar totals across all three tiers.
+
+#### Threshold alerts
+1. You create an “under” alert for Standard gwei and receive a WebSocket alert event the first time the network dips below your threshold.
+2. The alert fires once and deactivates — you create a new rule when you want to watch the same condition again.
+
+#### KLOD SEO pages and in-app hub
+1. Googlebot requests a best-time-to-send URL and receives filled static HTML with live placeholder values — not an empty marketing shell.
+2. You browse the same topic inside the SPA via the SEO hub tab strip without a full page reload.
+
+#### WordPress realtime mirror
+1. You configure the push URL and confirm enriched JSON reaches the plugin transient on the configured interval.
+2. Push HTTP errors increment in monitoring overview — you fix the API key mismatch before restarting the execution client.
+
+#### Operator monitoring
+1. You poll monitoring overview before a deploy and record fetch success rate, WebSocket client count, and cache hit ratios as a baseline.
+2. Loop average milliseconds climb while fetch timeouts increment — you check RPC health before blaming the WordPress plugin.
+
+#### WSL database merge utility
+1. You dry-run the merge script and review how many history rows would insert from laptop to server without writing anything.
+2. You run a real merge after a dev session and confirm backups exist and only missing rows append — never overwrites.
+
+
+---
+
 **Made by [Logic Encoder](https://logicencoder.com)** · [GitHub](https://github.com/logicencoder) · [Contact](https://logicencoder.com/contact/)
