@@ -7,7 +7,7 @@
 | Layer | Technologies |
 |-------|--------------|
 | Ingest | Python 3, FastAPI, uvicorn, web3.py, local Geth `newHeads` or hosted RPC fallback |
-| Storage | SQLite `gas_history` (~30 days), alerts table, in-memory caches for history/heatmap/stats |
+| Storage | SQLite rolling history (~30 days), alert rules, in-memory caches for history/heatmap/stats |
 | Realtime | WebSocket `/ws/gas` — full gas object each block plus alert events |
 | Analytics | Rolling 1h–30d windows, hourly heatmap buckets, IPI/spike scoring, predict/send hints |
 | Price feed | MEXC protobuf WebSocket for ETH/USD with Binance REST fallback |
@@ -44,11 +44,11 @@ Every block computes metrics the UI network grid and Intelligence Hub consume:
 - **Block speed pressure** — share of recent blocks above 90% full  
 - **Network status** — NORMAL / LOW / HIGH / SPIKE labels derived from the above  
 
-**Example:** `/api/gas/predict` says “send now” but **IPI** and **SPIKE** are elevated on the same payload → treat predict as relative to 24h average only; cross-check tx/min and utilization before a large batch — the predict route does not scan SQLite hourly tables (use statistics/heatmap for that).
+**Example:** `/api/gas/predict` says “send now” but **IPI** and **SPIKE** are elevated on the same payload → treat predict as relative to 24h average only; cross-check tx/min and utilization before a large batch — use statistics/heatmap endpoints for hourly context.
 
-## History charts and heatmap (SQLite)
+## History charts and heatmap
 
-Each stored block appends a row to **`gas_history`**. Retention is roughly **30 days** with purge during ingest so queries stay bounded.
+Each stored block appends to the rolling history store. Retention is roughly **30 days** with purge during ingest so queries stay bounded.
 
 **History API** serves Chart.js ranges from **1 hour through 30 days** for all three tiers, optional smoothing on the client, and utilization overlay series. Short windows stream live over WebSocket; longer windows read SQLite with server-side caching and background prewarm after each block.
 
@@ -98,7 +98,7 @@ When configured, an async task POSTs the enriched JSON to the plugin **`ethgas/v
 
 **Example:** loop **avg ms** climbing while **fetch_hard_timeouts** increment → RPC or Geth stress; **broadcast_failures** climbing with high client count → payload or network issue, not SQLite.
 
-## Shared hosting headroom (corroboration)
+## Shared hosting headroom
 
 The public gas product is published on **WordPress shared hosting** — appropriate for the SPA shell, SEO templates, cache bypass, and REST mirror, but not for block-by-block RPC ingest, SQLite growth, WebSocket fan-out, or tier math. This backend keeps **PHP thin**: compute runs on **self-hosted Linux** with async workers and optional Geth, then pushes compact JSON to WordPress. Visitors still get per-block updates over WebSocket; REST and the WP transient cover strict networks. Shared-hosting CPU and memory stay well below plan limits while the live tracker runs — same split pattern as other Logic Encoder realtime products on the same host.
 
