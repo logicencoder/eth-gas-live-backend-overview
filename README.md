@@ -30,7 +30,7 @@ Each new head triggers fee sampling from **local Geth** (preferred — `newHeads
 
 Each tier exposes gwei (base + priority), ETH and USD estimates for a reference transfer, and confirmation hints derived from block timing (~12s target per block). **ETH/USD** is refreshed from exchange feeds, not from the execution client.
 
-**Example:** wallet “medium” disagrees with the public site → compare against **Standard Way** on `/api/gas/current` or the WS payload — wallets often collapse tiers into one number; the backend keeps base and priority components separate for EIP-1559 accuracy.
+When a wallet “medium” disagrees with the public site → compare against **Standard Way** on `/api/gas/current` or the WS payload — wallets often collapse tiers into one number; the backend keeps base and priority components separate for EIP-1559 accuracy.
 
 ## Network stress signals
 
@@ -44,7 +44,7 @@ Every block computes metrics the UI network grid and Intelligence Hub consume:
 - **Block speed pressure** — share of recent blocks above 90% full  
 - **Network status** — NORMAL / LOW / HIGH / SPIKE labels derived from the above  
 
-**Example:** `/api/gas/predict` says “send now” but **IPI** and **SPIKE** are elevated on the same payload → treat predict as relative to 24h average only; cross-check tx/min and utilization before a large batch — use statistics/heatmap endpoints for hourly context.
+`/api/gas/predict` says “send now” but **IPI** and **SPIKE** are elevated on the same payload → treat predict as relative to 24h average only; cross-check tx/min and utilization before a large batch — use statistics/heatmap endpoints for hourly context.
 
 ## History charts and heatmap
 
@@ -54,31 +54,31 @@ Each stored block appends to the rolling history store. Retention is roughly **3
 
 **Heatmap API** pre-aggregates **hourly average Standard gwei** by calendar day in SQL (`GROUP BY day, hour`), returns up to **30 days**, and caches results — the browser shifts hours to the visitor timezone. Default UI window is **seven days** unless the user selects the **30 Days** chart range.
 
-**Example — backend supports “when to send”:** operator sees rising **heatmap_requests** and cache misses after deploy → cold cache, not broken ingest; wait for prewarm or one user-driven request to populate. Researcher pulls **7d heatmap** + **168h statistics** → same hourly buckets, different shape (visual grid vs tabular best/worst hour).
+When an operator sees rising **heatmap_requests** and cache misses after deploy → cold cache, not broken ingest; wait for prewarm or one user-driven request to populate. Researcher pulls **7d heatmap** + **168h statistics** → same hourly buckets, different shape (visual grid vs tabular best/worst hour).
 
 ## Gas Intelligence and predict
 
 The **`/api/gas/predict`** endpoint returns send-now vs wait guidance, plain-language message, current vs 24h average Standard gwei, and trend — computed from **`current_gas` rolling fields**, not a heavy hourly SQL scan. The SPA **Gas Intelligence Hub** and SSR **`klod_seo`** insight strings share the same enrichment path (`_enrich_gas_aliases`, `_ssr_snapshot_send_hint`, `_insight_text_one_liner`).
 
-**Example:** SEO “best time to send” page and live hub show aligned **Best Time (Last 24h)** because both read the same bundle from **`/api/gas/ssr-data`**; WordPress templates fill `{{PLACEHOLDER}}` keys from that JSON on a short transient cache.
+SEO “best time to send” page and live hub show aligned **Best Time (Last 24h)** because both read the same bundle from **`/api/gas/ssr-data`**; WordPress templates fill `{{PLACEHOLDER}}` keys from that JSON on a short transient cache.
 
 ## Featured transaction costs
 
 **`/api/gas/featured-actions`** recomputes **nineteen action types** each tick — transfers, approvals, swaps, NFT mint/sale, bridging, lending/borrowing, staking flows, liquidity add/remove, governance, multi-send, and contract deploy — each with low/avg/high gas limits mapped to **Base / Standard / Faster** gwei and USD. The SPA list and calculator presets stay in sync with the same limits defined in backend code.
 
-**Example:** planning approve + swap + bridge → sum three **standard** USD fields from featured-actions JSON for a budget check before opening the wallet; no manual gas-limit math on the client beyond display.
+When planning approve + swap + bridge → sum three **standard** USD fields from featured-actions JSON for a budget check before opening the wallet; no manual gas-limit math on the client beyond display.
 
 ## Threshold alerts
 
 **POST `/api/alerts`** stores rules keyed by **browser session id** with **over** or **under** threshold gwei. On each block, the ingest loop evaluates active rules; triggers broadcast on **`/ws/gas`** as alert events and can surface browser notifications in the SPA. **DELETE** removes rules per id; **GET** lists rules for a session.
 
-**Example:** user sets UNDER threshold → walks away → WS pushes alert payload when Standard drops → SPA toast + optional Notification API — backend holds state so refresh does not lose the rule until session expires or user deletes it.
+When a user sets an UNDER threshold → walks away → WS pushes alert payload when Standard drops → SPA toast + optional Notification API — backend holds state so refresh does not lose the rule until session expires or user deletes it.
 
 ## WebSocket broadcast
 
 Clients connect to **`/ws/gas`** for the full enriched gas object every block plus alert events. An internal client list fans out JSON to every session; monitoring tracks connected count, messages per minute, and broadcast failures. REST **`/api/gas/current`** mirrors the latest object for bootstrap and corporate networks that block WebSocket.
 
-**Example:** WS connected but REST bootstrap stale → check **`last_push`** to WordPress and **`fetch_failures`** in monitoring — ingest may be healthy while the WP mirror path is not.
+WS connected but REST bootstrap stale → check **`last_push`** to WordPress and **`fetch_failures`** in monitoring — ingest may be healthy while the WP mirror path is not.
 
 ## SSR data bundle and Node helper
 
@@ -90,13 +90,13 @@ A companion **`gas_tracker_ssr-server.js`** (Express + React) renders indexable 
 
 When configured, an async task POSTs the enriched JSON to the plugin **`ethgas/v1/realtime`** route with a shared API key. WordPress stores a short-lived transient so REST readers and cache-bypass fallback pages see fresh tiers without hitting Python on every page view. Mission Control surfaces push latency, HTTP status, and last success timestamp.
 
-**Example:** public site tiers frozen but monitoring shows healthy fetch → inspect **last_push_http_status** and plugin push key mismatch before restarting uvicorn.
+When public site tiers are frozen but monitoring shows healthy fetch → inspect **last_push_http_status** and plugin push key mismatch before restarting uvicorn.
 
 ## Operator monitoring
 
 **`/api/monitoring/overview`** aggregates uptime, ingest loop ms (last/avg/max), RPC fetch success rate, WebSocket client counts, SQLite row counts, history/heatmap/statistics cache hit ratios, WordPress push stats, and recent error strings. Sparkline arrays back wp-admin Mission Control charts.
 
-**Example:** loop **avg ms** climbing while **fetch_hard_timeouts** increment → RPC or Geth stress; **broadcast_failures** climbing with high client count → payload or network issue — check SQLite/cache next.
+When loop **avg ms** is climbing while **fetch_hard_timeouts** increment → RPC or Geth stress; **broadcast_failures** climbing with high client count → payload or network issue — check SQLite/cache next.
 
 ## Shared hosting headroom
 
