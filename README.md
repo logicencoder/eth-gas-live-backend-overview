@@ -110,7 +110,7 @@ See [REPOS.md](REPOS.md).
 
 ---
 
-## Feature examples (two per capability)
+## Operator workflows
 
 #### Block ingest and fee tiers
 1. You start the gas service on your execution client and confirm each new head triggers a fresh Base Route, Standard Way, and Faster Inclusion tier on the public dashboard.
