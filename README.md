@@ -1,5 +1,7 @@
 # ETH Gas Live — backend service
 
+![ETH Gas Live backend — live gas dashboard served by this service](assets/eth-gas-backend.png)
+
 **FastAPI + SQLite + Node SSR backend** for [logicencoder.com/ethereum-gas-tracker/](https://logicencoder.com/ethereum-gas-tracker/) and eleven related SEO URLs. The private service ingests Ethereum blocks, computes EIP-1559 fee tiers and congestion metrics, stores rolling history, streams live updates over WebSocket, fills SEO data bundles, and optionally mirrors JSON to WordPress. Visitors use the dashboard through the plugin; this repo documents the compute and API layer behind that product.
 
 ## Tech stack
