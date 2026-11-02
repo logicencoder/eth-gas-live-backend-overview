@@ -1,113 +1,71 @@
-# ETH Gas Live — backend service
+# ETH Gas Live — Fee Intelligence
 
-**FastAPI + SQLite + Node SSR backend** for [logicencoder.com/ethereum-gas-tracker/](https://logicencoder.com/ethereum-gas-tracker/) and eleven related SEO URLs. The private service ingests Ethereum blocks, computes EIP-1559 fee tiers and congestion metrics, stores rolling history, streams live updates over WebSocket, fills SEO data bundles, and optionally mirrors JSON to WordPress. Visitors use the dashboard through the plugin; this repo documents the compute and API layer behind that product.
+![ETH Gas Live backend — live gas dashboard served by this service](assets/eth-gas-backend.png)
+
+Planning an Ethereum action requires more than a single gas number. ETH Gas Live connects current fee choices with network activity, recent history and estimates for the transaction a visitor wants to make.
+
+The service supplies the [Ethereum Gas Tracker](https://logicencoder.com/ethereum-gas-tracker/) and its related information pages. It keeps fee planning, threshold alerts and deeper network comparisons part of one consistent experience.
 
 ## Tech stack
 
 | Layer | Technologies |
-|-------|--------------|
-| Ingest | Python 3, FastAPI, uvicorn, web3.py, local Geth `newHeads` or hosted RPC fallback |
-| Storage | SQLite rolling history (~30 days), alert rules, in-memory caches for history/heatmap/stats |
-| Realtime | WebSocket `/ws/gas` — full gas object each block plus alert events |
-| Analytics | Rolling 1h–30d windows, hourly heatmap buckets, IPI/spike scoring, predict/send hints |
-| Price feed | MEXC protobuf WebSocket for ETH/USD with Binance REST fallback |
-| SEO feed | `klod_seo` placeholder bundle via `/api/gas/ssr-data`; Node Express + React SSR for proxied crawler routes |
-| WordPress mirror | Optional authenticated POST to plugin REST transient |
-| Ops | `/api/monitoring/overview` — loop timing, fetch/push stats, WS clients, cache hit ratios |
-| Hosting | Self-hosted Linux for ingest and fan-out; WordPress on shared hosting for public pages |
+|---|---|
+| Application | Python, FastAPI |
+| Ethereum | Web3.py, Geth |
+| History | SQLite |
+| Web presentation | JavaScript, Chart.js, Node.js, React |
+| Publishing | WordPress |
 
-**Typical operator flows:** deploy new `gas_tracker.html` → copy shell to plugin repo → bump plugin version → purge WP cache → confirm **Mission Control** fetch latency and push HTTP status. Users report stale tiers → check monitoring **last push** and **fetch failures** before restarting Geth. SEO page looks wrong → hit SSR data bundle freshness (transient on WP side) and verify `klod_seo` keys in monitoring JSON dump.
+## Compare current fee choices
 
-## Block ingest and fee tiers
+Base Route, Standard Way and Faster Inclusion give visitors a way to compare current transaction conditions. Fee information is presented in gwei with reference ETH and USD estimates, helping connect network conditions to a practical budget.
 
-Each new head triggers fee sampling from **local Geth** (preferred — `newHeads` subscription or ~1s poll) or hosted RPC when the execution client is unavailable. The ingest loop enriches one **`current_gas`** dict per block: three tiers, network stress fields, rolling averages, and SEO placeholders.
+The surrounding context matters when deciding between sending now and waiting. Tier comparisons make that decision more understandable than treating one headline value as the only available choice.
 
-| Tier | Role |
-|------|------|
-| **Base Route** | Base fee path with minimal priority tip — economical when blocks are calm |
-| **Standard Way** | Typical inclusion from recent block fee sampling — default comparison for wallets |
-| **Faster Inclusion** | Higher percentile tips with congestion caps — competitive mempools and time-sensitive sends |
+## Read the network behind the price
 
-Each tier exposes gwei (base + priority), ETH and USD estimates for a reference transfer, and confirmation hints derived from block timing (~12s target per block). **ETH/USD** is refreshed from exchange feeds, not from the execution client.
+Activity, block utilisation and fee-competition measures add context to the fee tiers. Network-status, pressure and spike indicators help identify a period that deserves closer attention.
 
-When a wallet “medium” disagrees with the public site → compare against **Standard Way** on `/api/gas/current` or the WS payload — wallets often collapse tiers into one number; the backend keeps base and priority components separate for EIP-1559 accuracy.
+A visitor can compare a changing fee with the activity around it rather than reading either in isolation. These indicators describe conditions and relative pressure; they do not guarantee a particular future inclusion time.
 
-## Network stress signals
+## Explore history and timing
 
-Every block computes metrics the UI network grid and Intelligence Hub consume:
+History charts cover short sessions through longer windows, while hourly heatmaps make periods easier to compare. Multiple fee tiers and network context can be examined together.
 
-- **Tx / minute** — estimated from recent block transaction counts  
-- **Block utilization** — current and rolling average fullness  
-- **Inclusion Pressure Index (IPI)** — 0–100 composite of throughput, fullness, and tip spread (damped in very quiet markets)  
-- **Spike score** — 0–100 short-term regime vs 1h/24h Standard reference  
-- **Fee competition** — spread between high and median priority fees  
-- **Block speed pressure** — share of recent blocks above 90% full  
-- **Network status** — NORMAL / LOW / HIGH / SPIKE labels derived from the above  
+Use recent history to understand the current session, or a broader view to review recurring patterns. The selected period and the observation coverage remain part of interpreting the comparison.
 
-`/api/gas/predict` says “send now” but **IPI** and **SPIKE** are elevated on the same payload → treat predict as relative to 24h average only; cross-check tx/min and utilization before a large batch — use statistics/heatmap endpoints for hourly context.
+## Estimate the action being planned
 
-## History charts and heatmap
+Common-action estimates cover transfers, approvals, swaps, NFT actions, bridging, lending, staking, liquidity operations, governance and other supported tasks. Different action types can therefore be compared under the same fee conditions.
 
-Each stored block appends to the rolling history store. Retention is roughly **30 days** with purge during ingest so queries stay bounded.
+This is useful when a planned workflow contains more than one transaction. The visitor can review the relevant estimates before deciding what belongs in the intended budget.
 
-**History API** serves Chart.js ranges from **1 hour through 30 days** for all three tiers, optional smoothing on the client, and utilization overlay series. Short windows stream live over WebSocket; longer windows read SQLite with server-side caching and background prewarm after each block.
+## Return when a threshold matters
 
-**Heatmap API** pre-aggregates **hourly average Standard gwei** by calendar day in SQL (`GROUP BY day, hour`), returns up to **30 days**, and caches results — the browser shifts hours to the visitor timezone. Default UI window is **seven days** unless the user selects the **30 Days** chart range.
+Custom over- and under-threshold alerts provide an alternative to continuously watching the dashboard. Supported browser notifications and in-page feedback bring attention back when the chosen condition is observed.
 
-When an operator sees rising **heatmap_requests** and cache misses after deploy → cold cache, not broken ingest; wait for prewarm or one user-driven request to populate. Researcher pulls **7d heatmap** + **168h statistics** → same hourly buckets, different shape (visual grid vs tabular best/worst hour).
+The Gas Intelligence Hub offers a focused place to review timing information, network context and relative fee conditions. History spans the supported short and longer windows, including views reaching thirty days where observations are available.
 
-## Gas Intelligence and predict
+The intelligence views also connect current conditions with recent averages and timing context. Their guidance is a way to frame the available observations, not a promise about the next block.
 
-The **`/api/gas/predict`** endpoint returns send-now vs wait guidance, plain-language message, current vs 24h average Standard gwei, and trend — computed from **`current_gas` rolling fields**, not a heavy hourly SQL scan. The SPA **Gas Intelligence Hub** and SSR **`klod_seo`** insight strings share the same enrichment path (`_enrich_gas_aliases`, `_ssr_snapshot_send_hint`, `_insight_text_one_liner`).
+## Keep the published experience coherent
 
-SEO “best time to send” page and live hub show aligned **Best Time (Last 24h)** because both read the same bundle from **`/api/gas/ssr-data`**; WordPress templates fill `{{PLACEHOLDER}}` keys from that JSON on a short transient cache.
+Live updates, related information pages and the WordPress presentation draw on the same fee information. Visitors can enter through the main tracker or through a page about a particular Ethereum task.
 
-## Featured transaction costs
+Search-friendly pages support discovering that information outside an already-open dashboard. The companion WordPress product supplies the visitor-facing controls and publishing experience.
 
-**`/api/gas/featured-actions`** recomputes **nineteen action types** each tick — transfers, approvals, swaps, NFT mint/sale, bridging, lending/borrowing, staking flows, liquidity add/remove, governance, multi-send, and contract deploy — each with low/avg/high gas limits mapped to **Base / Standard / Faster** gwei and USD. The SPA list and calculator presets stay in sync with the same limits defined in backend code.
+## Inspect the service when information looks stale
 
-When planning approve + swap + bridge → sum three **standard** USD fields from featured-actions JSON for a budget check before opening the wallet; no manual gas-limit math on the client beyond display.
+Operator monitoring brings collection health, connected sessions, history and publication outcomes together. It supports distinguishing an interruption in fee observations from a problem delivering them to a website.
 
-## Threshold alerts
-
-**POST `/api/alerts`** stores rules keyed by **browser session id** with **over** or **under** threshold gwei. On each block, the ingest loop evaluates active rules; triggers broadcast on **`/ws/gas`** as alert events and can surface browser notifications in the SPA. **DELETE** removes rules per id; **GET** lists rules for a session.
-
-When a user sets an UNDER threshold → walks away → WS pushes alert payload when Standard drops → SPA toast + optional Notification API — backend holds state so refresh does not lose the rule until session expires or user deletes it.
-
-## WebSocket broadcast
-
-Clients connect to **`/ws/gas`** for the full enriched gas object every block plus alert events. An internal client list fans out JSON to every session; monitoring tracks connected count, messages per minute, and broadcast failures. REST **`/api/gas/current`** mirrors the latest object for bootstrap and corporate networks that block WebSocket.
-
-WS connected but REST bootstrap stale → check **`last_push`** to WordPress and **`fetch_failures`** in monitoring — ingest may be healthy while the WP mirror path is not.
-
-## SSR data bundle and Node helper
-
-**`/api/gas/ssr-data`** returns one JSON document: current tiers, network metrics, rolling averages, heatmap headline keys, predict hint, and the full **`klod_seo`** placeholder map for eleven SEO templates. WordPress fills local HTML templates from this bundle; the plugin does not recompute gas in PHP.
-
-A companion **`gas_tracker_ssr-server.js`** (Express + React) renders indexable HTML for routes proxied by FastAPI (`/ssr_gas/page`, `/ethereum-gas/`, and related paths) using the same bundle — no duplicate tier math in Node. Static **`ssr_klod_files/`** HTML supports crawler and embed routes aligned with logicencoder.com SEO URLs.
-
-## WordPress mirror push
-
-When configured, an async task POSTs the enriched JSON to the plugin **`ethgas/v1/realtime`** route with a shared API key. WordPress stores a short-lived transient so REST readers and cache-bypass fallback pages see fresh tiers without hitting Python on every page view. Mission Control surfaces push latency, HTTP status, and last success timestamp.
-
-When public site tiers are frozen but monitoring shows healthy fetch → inspect **last_push_http_status** and plugin push key mismatch before restarting uvicorn.
-
-## Operator monitoring
-
-**`/api/monitoring/overview`** aggregates uptime, ingest loop ms (last/avg/max), RPC fetch success rate, WebSocket client counts, SQLite row counts, history/heatmap/statistics cache hit ratios, WordPress push stats, and recent error strings. Sparkline arrays back wp-admin Mission Control charts.
-
-When loop **avg ms** is climbing while **fetch_hard_timeouts** increment → RPC or Geth stress; **broadcast_failures** climbing with high client count → payload or network issue — check SQLite/cache next.
-
-## Shared hosting headroom
-
-The public gas product is published on **WordPress shared hosting** for the SPA shell, SEO templates, cache bypass, and REST mirror. Block-by-block RPC ingest, SQLite growth, WebSocket fan-out, and tier math run on **self-hosted Linux** with async workers and optional Geth; compact JSON pushes to WordPress. Visitors still get per-block updates over WebSocket; REST and the WP transient cover strict networks. Shared-hosting CPU and memory stay well below plan limits while the live tracker runs — same split pattern as other Logic Encoder realtime products on the same host.
-
-Private code: [eth-gas-live-backend](https://github.com/logicencoder/eth-gas-live-backend)
-
-Plugin overview: [eth-gas-live-plugin-overview](https://github.com/logicencoder/eth-gas-live-plugin-overview)
-
-See [REPOS.md](REPOS.md).
+That operational view helps maintain the public experience while leaving the visitor's task focused on understanding fees and planning an action.
 
 ---
 
-**Made by [Logic Encoder](https://logicencoder.com)** · [GitHub](https://github.com/logicencoder) · [Contact](https://logicencoder.com/contact/)
+Private code: [eth-gas-live-backend](https://github.com/logicencoder/eth-gas-live-backend)
+
+[WordPress gas dashboard](https://github.com/logicencoder/eth-gas-live-plugin-overview)
+
+See [REPOS.md](REPOS.md) for related repositories.
+
+**[Logic Encoder](https://logicencoder.com)** · [GitHub](https://github.com/logicencoder) · [Contact](https://logicencoder.com/contact/)
