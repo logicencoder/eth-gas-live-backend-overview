@@ -1,6 +1,6 @@
 # ETH Gas Live — Fee Intelligence
 
-![ETH Gas Live backend — live gas dashboard served by this service](assets/eth-gas-backend.png)
+![ETH Gas Live backend — live gas dashboard served by this service](assets/eth-gas-live-backend-dashboard.png)
 
 Planning an Ethereum transaction takes more than one gas number. ETH Gas Live is the service behind the [Ethereum Gas Tracker](https://logicencoder.com/ethereum-gas-tracker/): it reads fees from the Ethereum network about once per block, serves three fee tiers in gwei with ETH and USD cost, keeps a history of up to 30 days, estimates the cost of 19 common transaction types and lets a visitor set a gwei threshold to be warned about. It is built for anyone who sends transactions and wants to know whether to go now or wait.
 
